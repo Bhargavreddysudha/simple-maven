@@ -5,6 +5,7 @@ pipeline {
         GIT_REPO_URL = 'https://github.com/Bhargavreddysudha/simple-maven.git'
         GIT_BRANCH = 'main'
         SONARQUBE_SERVER = 'http://52.87.243.220:9000/'
+        SONARQUBE_TOKEN = 'sqa_b930957435503c7139871889ab454053d360db95'
     }
 
     stages {
