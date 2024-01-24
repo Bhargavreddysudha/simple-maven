@@ -21,7 +21,7 @@ pipeline {
             steps {
                 script {
                     def mvn = tool 'Maven'
-                    withSonarQubeEnv() {
+                    withSonarQubeEnv(credentialsId: 'Sonar-Jenkins') {
                         sh "${mvn}/bin/mvn clean verify sonar:sonar -Dsonar.projectKey=Java-Code"
                     }
                 }
@@ -31,11 +31,13 @@ pipeline {
         stage('Quality Gate') {
             steps {
                 script {
-                    def qg = waitForQualityGate()
-                    if (qg.status == 'OK') {
+                    def analysisId = sh(script: "curl -s -u $(cat \${JENKINS_HOME}/secrets/sonarqube-token): $SONARQUBE_SERVER/api/qualitygates/project_status?analysisId=$(curl -s -u $(cat \${JENKINS_HOME}/secrets/sonarqube-token): $SONARQUBE_SERVER/api/qualitygates/project_status?projectKey=Java-Code | jq -r '.analysisId') | jq -r '.analysisId'", returnStatus: true).trim()
+                    def qualityGateStatus = sh(script: "curl -s -u $(cat \${JENKINS_HOME}/secrets/sonarqube-token): $SONARQUBE_SERVER/api/qualitygates/project_status?analysisId=$analysisId | jq -r '.projectStatus.status'", returnStatus: true).trim()
+
+                    if (qualityGateStatus == 'OK') {
                         echo 'Quality Gate passed - Proceeding to the next stage'
                     } else {
-                        error "Quality Gate failed: ${qg.status}"
+                        error "Quality Gate failed: ${qualityGateStatus}"
                     }
                 }
             }
