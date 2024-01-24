@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-        // Define the Git repository URL, branch, and SonarQube server URL
         GIT_REPO_URL = 'https://github.com/Bhargavreddysudha/simple-maven.git'
         GIT_BRANCH = 'main'
         SONARQUBE_SERVER = 'http://52.87.243.220:9000/'
@@ -11,7 +10,6 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Checkout code from source control
                 checkout([$class: 'GitSCM', 
                           branches: [[name: "*/${GIT_BRANCH}"]], 
                           userRemoteConfigs: [[url: "${GIT_REPO_URL}"]]])
@@ -23,7 +21,6 @@ pipeline {
                 script {
                     def mvn = tool 'Maven'
 
-                    // Use withCredentials to fetch SonarQube token from Jenkins Credentials
                     withCredentials([string(credentialsId: 'Sonar-Jenkins', variable: 'SONARQUBE_TOKEN')]) {
                         withSonarQubeEnv(credentialsId: 'Sonar-Jenkins', installationName: 'SonarQube') {
                             sh "${mvn}/bin/mvn clean verify sonar:sonar -Dsonar.projectKey=Java-Code"
@@ -36,10 +33,9 @@ pipeline {
         stage('Quality Gate') {
             steps {
                 script {
-                    // Use withCredentials to fetch SonarQube token from Jenkins Credentials
                     withCredentials([string(credentialsId: 'Sonar-Jenkins', variable: 'SONARQUBE_TOKEN')]) {
-                        def analysisId = sh(script: "curl -s -u \$SONARQUBE_TOKEN: \$SONARQUBE_SERVER/api/qualitygates/project_status?analysisId=\$(curl -s -u \$SONARQUBE_TOKEN: \$SONARQUBE_SERVER/api/qualitygates/project_status?projectKey=Java-Code | jq -r '.analysisId') | jq -r '.analysisId'", returnStatus: true).trim()
-                        def qualityGateStatus = sh(script: "curl -s -u \$SONARQUBE_TOKEN: \$SONARQUBE_SERVER/api/qualitygates/project_status?analysisId=$analysisId | jq -r '.projectStatus.status'", returnStatus: true).trim()
+                        def analysisId = sh(script: "curl -s -u \$SONARQUBE_TOKEN: \$SONARQUBE_SERVER/api/qualitygates/project_status?projectKey=Java-Code | jq -r '.analysisId'", returnStatus: true).trim()
+                        def qualityGateStatus = sh(script: "curl -s -u \$SONARQUBE_TOKEN: \$SONARQUBE_SERVER/api/qualitygates/project_status?analysisId=${analysisId} | jq -r '.projectStatus.status'", returnStatus: true).trim()
 
                         if (qualityGateStatus == 'OK') {
                             echo 'Quality Gate passed - Proceeding to the next stage'
@@ -62,11 +58,9 @@ pipeline {
 
         stage('Next Stage') {
             steps {
-                // Your next stage steps here
                 echo 'Performing actions in the next stage...'
+                // Your next stage steps here
             }
         }
     }
-
-    // Add post-build actions or other configurations as needed
 }
