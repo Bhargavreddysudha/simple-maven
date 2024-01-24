@@ -5,6 +5,7 @@ pipeline {
         GIT_REPO_URL = 'https://github.com/Bhargavreddysudha/simple-maven.git'
         GIT_BRANCH = 'main'
         SONARQUBE_SERVER = 'http://52.87.243.220:9000/'
+        S3_BUCKET_NAME = 'test-bukkk'
     }
 
     stages {
@@ -35,6 +36,17 @@ pipeline {
                 script {
                     def mvn = tool 'Maven'
                     sh "${mvn}/bin/mvn package"
+                }
+            }
+        }
+
+        stage('Move Artifact to S3') {
+            steps {
+                script {
+                    def artifactName = "your-artifact-${env.BUILD_NUMBER}.jar"
+                    sh """
+                        aws s3 cp target/${artifactName} s3://${S3_BUCKET_NAME}/
+                    """
                 }
             }
         }
