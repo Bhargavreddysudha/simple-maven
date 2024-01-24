@@ -1,30 +1,35 @@
 pipeline {
-    agent {
-        docker {
-            image 'maven:3.9.0'
-            args '-v /root/.m2:/root/.m2'
-        }
+    agent any
+
+    environment {
+        // Define the Git repository URL and branch
+        GIT_REPO_URL = 'https://github.com/Bhargavreddysudha/simple-maven.git'
+        GIT_BRANCH = 'main'
     }
+
     stages {
-        stage('Build') {
+        stage('Checkout') {
             steps {
-                sh 'mvn -B -DskipTests clean package'
+                // Checkout code from source control
+                checkout([$class: 'GitSCM', 
+                          branches: [[name: "*/${GIT_BRANCH}"]], 
+                          userRemoteConfigs: [[url: "${GIT_REPO_URL}"]]])
             }
         }
-        stage('Test') {
+
+        stage('SonarQube Analysis') {
             steps {
-                sh 'mvn test'
-            }
-            post {
-                always {
-                    junit 'target/surefire-reports/*.xml'
+                script {
+                    def mvn = tool 'Maven'
+                    withSonarQubeEnv() {
+                        sh "${mvn}/bin/mvn clean verify sonar:sonar -Dsonar.projectKey=Java-Code"
+                    }
                 }
             }
         }
-        stage('Deliver') {
-            steps {
-                sh './jenkins/scripts/deliver.sh'
-            }
-        }
+
+        // Add more stages as needed for your build and deployment process
     }
+
+    // Add post-build actions or other configurations as needed
 }
