@@ -36,7 +36,7 @@ pipeline {
                 script {
                     def mvn = tool 'Maven'
                     def artifactName = "your-artifact-${env.BUILD_NUMBER}.jar"
-                    sh "${mvn}/bin/mvn clean package -DskipTests && mv target/your-artifact.jar target/${artifactName}"
+                    sh "${mvn}/bin/mvn clean package -DskipTests -Dmaven.buildNumber.doCheck=false -Dmaven.buildNumber.doUpdate=false -Dbuild.number=${env.BUILD_NUMBER} && mv target/your-artifact.jar target/${artifactName}"
                 }
             }
         }
