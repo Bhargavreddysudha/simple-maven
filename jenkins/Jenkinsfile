@@ -5,6 +5,7 @@ pipeline {
         // Define the Git repository URL and branch
         GIT_REPO_URL = 'https://github.com/Bhargavreddysudha/simple-maven.git'
         GIT_BRANCH = 'main'
+        SONARQUBE_SERVER = 'http://52.87.243.220:9000/'
     }
 
     stages {
