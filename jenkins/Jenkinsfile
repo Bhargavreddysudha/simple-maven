@@ -25,7 +25,7 @@ pipeline {
 
                     // Use withCredentials to fetch SonarQube token from Jenkins Credentials
                     withCredentials([string(credentialsId: 'Sonar-Jenkins', variable: 'SONARQUBE_TOKEN')]) {
-                        withSonarQubeEnv(credentialsId: 'Sonar-Jenkins', installationName: 'Your-SonarQube-Installation') {
+                        withSonarQubeEnv(credentialsId: 'Sonar-Jenkins', installationName: 'SonarQube') {
                             sh "${mvn}/bin/mvn clean verify sonar:sonar -Dsonar.projectKey=Java-Code"
                         }
                     }
