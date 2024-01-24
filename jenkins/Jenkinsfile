@@ -34,13 +34,25 @@ pipeline {
             steps {
                 script {
                     withCredentials([string(credentialsId: 'Sonar-Jenkins', variable: 'SONARQUBE_TOKEN')]) {
-                        def analysisId = sh(script: "curl -s -u \$SONARQUBE_TOKEN: \$SONARQUBE_SERVER/api/qualitygates/project_status?projectKey=Java-Code | jq -r '.analysisId'", returnStatus: true).trim()
-                        def qualityGateStatus = sh(script: "curl -s -u \$SONARQUBE_TOKEN: \$SONARQUBE_SERVER/api/qualitygates/project_status?analysisId=${analysisId} | jq -r '.projectStatus.status'", returnStatus: true).trim()
+                        def analysisIdResponse = sh(script: "curl -s -u \$SONARQUBE_TOKEN: \$SONARQUBE_SERVER/api/qualitygates/project_status?projectKey=Java-Code", returnStdout: true).trim()
 
-                        if (qualityGateStatus == 'OK') {
-                            echo 'Quality Gate passed - Proceeding to the next stage'
+                        // Print the response for debugging
+                        echo "Analysis ID Response: ${analysisIdResponse}"
+
+                        // Parse the JSON response to get analysisId
+                        def analysisId = readJSON text: analysisIdResponse
+
+                        // Check if 'analysisId' is present in the response
+                        if (analysisId && analysisId.analysisId) {
+                            def qualityGateStatus = sh(script: "curl -s -u \$SONARQUBE_TOKEN: \$SONARQUBE_SERVER/api/qualitygates/project_status?analysisId=${analysisId.analysisId} | jq -r '.projectStatus.status'", returnStatus: true).trim()
+
+                            if (qualityGateStatus == 'OK') {
+                                echo 'Quality Gate passed - Proceeding to the next stage'
+                            } else {
+                                error "Quality Gate failed: ${qualityGateStatus}"
+                            }
                         } else {
-                            error "Quality Gate failed: ${qualityGateStatus}"
+                            error "Failed to retrieve 'analysisId' from the SonarQube response."
                         }
                     }
                 }
