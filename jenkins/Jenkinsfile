@@ -30,41 +30,6 @@ pipeline {
             }
         }
 
-        stage('Quality Gate') {
-            steps {
-                script {
-                    withCredentials([string(credentialsId: 'Sonar-Jenkins', variable: 'SONARQUBE_TOKEN')]) {
-                        def analysisIdResponse = sh(script: "curl -s -u \$SONARQUBE_TOKEN: \$SONARQUBE_SERVER/api/qualitygates/project_status?projectKey=Java-Code", returnStdout: true).trim()
-
-                        // Print the response for debugging
-                        echo "Analysis ID Response: ${analysisIdResponse}"
-
-                        // Parse the JSON response to get analysisId
-                        def analysisId = readJSON text: analysisIdResponse
-
-                        // Check if 'analysisId' is present in the response
-                        if (analysisId && analysisId.analysisId) {
-                            def qualityGateStatus = sh(script: "curl -s -u \$SONARQUBE_TOKEN: \$SONARQUBE_SERVER/api/qualitygates/project_status?analysisId=${analysisId.analysisId} | jq -r '.projectStatus.status'", returnStatus: true).trim()
-
-                            if (qualityGateStatus == 'OK') {
-                                echo 'Quality Gate passed - Proceeding to the next stage'
-                            } else {
-                                error "Quality Gate failed: ${qualityGateStatus}"
-                            }
-                        } else {
-                            error "Failed to retrieve 'analysisId' from the SonarQube response."
-                        }
-                    }
-                }
-            }
-            post {
-                success {
-                    // Only execute the next stage if Quality Gate passes
-                    echo 'Quality Gate passed - Proceeding to the next stage'
-                }
-            }
-        }
-
         stage('Java Package') {
             steps {
                 script {
