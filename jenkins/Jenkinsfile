@@ -5,7 +5,7 @@ pipeline {
         GIT_REPO_URL = 'https://github.com/Bhargavreddysudha/simple-maven.git'
         GIT_BRANCH = 'main'
         SONARQUBE_SERVER = 'http://52.87.243.220:9000/'
-        S3_BUCKET_NAME = 'test-bukkk'
+        S3_BUCKET_NAME = 'your-s3-bucket-name'
     }
 
     stages {
@@ -44,8 +44,9 @@ pipeline {
             steps {
                 script {
                     def artifactName = "your-artifact-${env.BUILD_NUMBER}.jar"
+                    def sourceArtifactPath = "${env.WORKSPACE}/target/${artifactName}"
                     sh """
-                        aws s3 cp target/${artifactName} s3://${S3_BUCKET_NAME}/
+                        aws s3 cp ${sourceArtifactPath} s3://${S3_BUCKET_NAME}/
                     """
                 }
             }
