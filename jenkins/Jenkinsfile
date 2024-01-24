@@ -28,7 +28,34 @@ pipeline {
             }
         }
 
-        // Add more stages as needed for your build and deployment process
+        stage('Quality Gate') {
+            steps {
+                script {
+                    def qg = waitForQualityGate()
+                    if (qg.status == 'OK') {
+                        echo 'Quality Gate passed - Proceeding to the next stage'
+                    } else {
+                        error "Quality Gate failed: ${qg.status}"
+                    }
+                }
+            }
+        }
+
+        stage('Java Package') {
+            steps {
+                script {
+                    def mvn = tool 'Maven'
+                    sh "${mvn}/bin/mvn package"
+                }
+            }
+        }
+
+        stage('Next Stage') {
+            steps {
+                // Your next stage steps here
+                echo 'Performing actions in the next stage...'
+            }
+        }
     }
 
     // Add post-build actions or other configurations as needed
