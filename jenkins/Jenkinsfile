@@ -6,8 +6,6 @@ pipeline {
         GIT_BRANCH = 'main'
         SONARQUBE_SERVER = 'http://3.86.116.55:9000/'
         S3_BUCKET_NAME = 'kamchu'
-        TOMCAT_IP = '44.201.130.120'
-        TOMCAT_USERNAME = 'ec2-user'
     }
 
     stages {
@@ -59,38 +57,6 @@ pipeline {
                 }
             }
         }
-
-        stage('Deploy to Tomcat') {
-            steps {
-                script {
-                    def artifactName = "my-app-1.0-SNAPSHOT-${env.BUILD_NUMBER}.jar"
-                    def destinationArtifactPath = "/opt/tomcat/webapps/${artifactName}"
-                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'Jenkins-AWS', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
-                        sh """
-                            aws s3 cp s3://${S3_BUCKET_NAME}/${artifactName} ${destinationArtifactPath}
-                        """
-                    }
-                }
-            }
-        }
-
-        stage('Start Tomcat') {
-            steps {
-                script {
-                    sshagent(['jenkins-aws']) {
-                        sh """
-                            ssh ${TOMCAT_USERNAME}@${TOMCAT_IP} "sudo sh /opt/tomcat/bin/startup.sh"
-                        """
-                    }
-                }
-            }
-        }
-
-        stage('Next Stage') {
-            steps {
-                echo 'Performing actions in the next stage...'
-                // Your next stage steps here
-            }
-        }
     }
 }
+
