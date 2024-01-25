@@ -6,8 +6,8 @@ pipeline {
         GIT_BRANCH = 'main'
         SONARQUBE_SERVER = 'http://3.86.116.55:9000/'
         S3_BUCKET_NAME = 'kamchu'
-        TOMCAT_IP = 'TARGET_EC2_IP'
-        TOMCAT_USERNAME = 'SSH_USERNAME'
+        TOMCAT_IP = '44.201.130.120'
+        TOMCAT_USERNAME = 'ec2-user'
     }
 
     stages {
@@ -67,7 +67,7 @@ pipeline {
                     def sourceArtifactPath = "${env.WORKSPACE}/target/${artifactName}"
                     sshagent(['jenkins-aws']) {
                         sh """
-                            scp -o StrictHostKeyChecking=no ${sourceArtifactPath} ${TOMCAT_USERNAME}@${TOMCAT_IP}:/path/to/tomcat/webapps/
+                            scp -o StrictHostKeyChecking=no ${sourceArtifactPath} ${TOMCAT_USERNAME}@${TOMCAT_IP}:/opt/tomcat/webapps/
                         """
                     }
                 }
@@ -79,7 +79,7 @@ pipeline {
                 script {
                     sshagent(['jenkins-aws']) {
                         sh """
-                            ssh ${TOMCAT_USERNAME}@${TOMCAT_IP} "/path/to/tomcat/bin/startup.sh"
+                            ssh ${TOMCAT_USERNAME}@${TOMCAT_IP} "sudo sh /opt/tomcat/bin/startup.sh"
                         """
                     }
                 }
