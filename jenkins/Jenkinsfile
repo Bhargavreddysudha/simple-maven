@@ -5,7 +5,7 @@ pipeline {
         GIT_REPO_URL = 'https://github.com/Bhargavreddysudha/simple-maven.git'
         GIT_BRANCH = 'main'
         SONARQUBE_SERVER = 'http://3.86.116.55:9000/'
-        S3_BUCKET_NAME = 'test-bukkk'
+        S3_BUCKET_NAME = 'kamchu'
     }
 
     stages {
