@@ -6,6 +6,9 @@ pipeline {
         GIT_BRANCH = 'main'
         SONARQUBE_SERVER = 'http://3.86.116.55:9000/'
         S3_BUCKET_NAME = 'kamchu'
+        TOMCAT_SERVER_IP = '44.201.130.120'
+        TOMCAT_SERVER_USER = 'ec2-user'
+        TOMCAT_DEPLOY_DIR = '/opt/tomcat/webapps'
     }
 
     stages {
@@ -35,11 +38,7 @@ pipeline {
             steps {
                 script {
                     def mvn = tool 'Maven'
-                    def artifactName = "my-app-1.0-SNAPSHOT-${env.BUILD_NUMBER}.jar"
-                    sh """
-                        ${mvn}/bin/mvn clean package -DskipTests -Dmaven.buildNumber.doCheck=false -Dmaven.buildNumber.doUpdate=false -Dbuild.number=${env.BUILD_NUMBER}
-                        mv target/my-app-1.0-SNAPSHOT.jar target/${artifactName}
-                    """
+                    sh "${mvn}/bin/mvn clean package -DskipTests -Dmaven.buildNumber.doCheck=false -Dmaven.buildNumber.doUpdate=false -Dbuild.number=${env.BUILD_NUMBER} war:war"
                 }
             }
         }
@@ -47,12 +46,43 @@ pipeline {
         stage('Move Artifact to S3') {
             steps {
                 script {
-                    def artifactName = "my-app-1.0-SNAPSHOT-${env.BUILD_NUMBER}.jar"
-                    def sourceArtifactPath = "${env.WORKSPACE}/target/${artifactName}"
+                    def warName = "my-app-1.0-SNAPSHOT-${env.BUILD_NUMBER}.war"
+                    def sourceWarPath = "${env.WORKSPACE}/target/${warName}"
                     withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'Jenkins-AWS', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
                         sh """
-                            aws s3 cp ${sourceArtifactPath} s3://${S3_BUCKET_NAME}/
+                            aws s3 cp ${sourceWarPath} s3://${S3_BUCKET_NAME}/
                         """
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Tomcat') {
+            steps {
+                script {
+                    def warName = "my-app-1.0-SNAPSHOT-${env.BUILD_NUMBER}.war"
+                    def sourceWarPath = "${env.WORKSPACE}/target/${warName}"
+                    withCredentials([sshUserPrivateKey(credentialsId: 'SSH_CREDENTIALS_ID', keyFileVariable: 'SSH_KEY_FILE', passphraseVariable: '', usernameVariable: 'SSH_USERNAME')]) {
+                        sshagent(['SSH_CREDENTIALS_ID']) {
+                            sh """
+                                scp -i ${SSH_KEY_FILE} ${sourceWarPath} ${TOMCAT_SERVER_USER}@${TOMCAT_SERVER_IP}:${TOMCAT_DEPLOY_DIR}
+                            """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Restart Tomcat') {
+            steps {
+                script {
+                    withCredentials([sshUserPrivateKey(credentialsId: 'SSH_CREDENTIALS_ID', keyFileVariable: 'SSH_KEY_FILE', passphraseVariable: '', usernameVariable: 'SSH_USERNAME')]) {
+                        sshagent(['SSH_CREDENTIALS_ID']) {
+                            sh """
+                                ssh -i ${SSH_KEY_FILE} ${TOMCAT_SERVER_USER}@${TOMCAT_SERVER_IP} '${TOMCAT_DEPLOY_DIR}/bin/shutdown.sh'
+                                ssh -i ${SSH_KEY_FILE} ${TOMCAT_SERVER_USER}@${TOMCAT_SERVER_IP} '${TOMCAT_DEPLOY_DIR}/bin/startup.sh'
+                            """
+                        }
                     }
                 }
             }
