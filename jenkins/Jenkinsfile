@@ -49,7 +49,7 @@ pipeline {
                 script {
                     def artifactName = "my-app-1.0-SNAPSHOT-${env.BUILD_NUMBER}.jar"
                     def sourceArtifactPath = "${env.WORKSPACE}/target/${artifactName}"
-                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'Jenkins-AWS', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'sonar-AWS', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
                         sh """
                             aws s3 cp ${sourceArtifactPath} s3://${S3_BUCKET_NAME}/
                         """
