@@ -34,7 +34,9 @@ pipeline {
         stage('Quality Gate') {
             steps {
                 script {
-                    def qualityGateStatus = sh(script: "curl -s '${SONARQUBE_SERVER}/api/qualitygates/project_status?projectKey=Java-Code' | jq -r '.projectStatus.status'", returnStdout: true).trim()
+                    def response = sh(script: "curl -s '${SONARQUBE_SERVER}/api/qualitygates/project_status?projectKey=Java-Code'", returnStdout: true).trim()
+                    echo "SonarQube API Response: ${response}"
+                    def qualityGateStatus = sh(script: "echo '${response}' | jq -r '.projectStatus.status'", returnStdout: true).trim()
                     if (qualityGateStatus != 'OK') {
                         error "Quality Gate failed. Aborting the pipeline."
                     }
