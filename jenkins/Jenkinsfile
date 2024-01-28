@@ -4,8 +4,8 @@ pipeline {
     environment {
         GIT_REPO_URL = 'https://github.com/Bhargavreddysudha/simple-maven.git'
         GIT_BRANCH = 'main'
-        SONARQUBE_SERVER = 'http://3.86.116.55:9000/'
-        S3_BUCKET_NAME = 'farak'
+        SONARQUBE_SERVER = 'http://34.238.241.191:9000/'
+        S3_BUCKET_NAME = 'charcus'
     }
 
     stages {
@@ -26,6 +26,17 @@ pipeline {
                         withSonarQubeEnv(credentialsId: 'sonar-jenkins', installationName: 'SonarQube') {
                             sh "${mvn}/bin/mvn clean verify sonar:sonar -Dsonar.projectKey=Java-Code"
                         }
+                    }
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                script {
+                    def qualityGateStatus = sh(script: "curl -s '${SONARQUBE_SERVER}/api/qualitygates/project_status?projectKey=Java-Code' | jq -r '.projectStatus.status'", returnStdout: true).trim()
+                    if (qualityGateStatus != 'OK') {
+                        error "Quality Gate failed. Aborting the pipeline."
                     }
                 }
             }
@@ -59,4 +70,3 @@ pipeline {
         }
     }
 }
-
