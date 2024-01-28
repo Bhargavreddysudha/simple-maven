@@ -60,9 +60,9 @@ pipeline {
                     def artifactName = "my-app-1.0-SNAPSHOT-${env.BUILD_NUMBER}.jar"
                     def sourceArtifactPath = "${env.WORKSPACE}/target/${artifactName}"
                     
-                    withCredentials([usernamePassword(credentialsId: "${NEXUS_CREDENTIALS_ID}", usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
+                    withCredentials([usernamePassword(credentialsId: "${NEXUS_CREDENTIALS_ID}", usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                         sh """
-                            curl -v -u ${NEXUS_USERNAME}:${NEXUS_PASSWORD} --upload-file ${sourceArtifactPath} ${NEXUS_URL}/repository/${NEXUS_REPOSITORY}/${artifactName}
+                            curl -v -u ${USERNAME}:${PASSWORD} --upload-file ${sourceArtifactPath} ${NEXUS_URL}/repository/${NEXUS_REPOSITORY}/${artifactName}
                         """
                     }
                 }
