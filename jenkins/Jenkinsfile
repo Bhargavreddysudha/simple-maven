@@ -24,7 +24,7 @@ pipeline {
 
                     withCredentials([string(credentialsId: 'sonar-jenkins', variable: 'SONARQUBE_TOKEN')]) {
                         withSonarQubeEnv(credentialsId: 'sonar-jenkins', installationName: 'SonarQube') {
-                            sh "${mvn}/bin/mvn clean verify sonar:sonar -Dsonar.projectKey=Java-Code"
+                            sh "${mvn}/bin/mvn clean verify sonar:sonar -Dsonar.projectKey=my-app"
                         }
                     }
                 }
@@ -34,7 +34,7 @@ pipeline {
         stage('Quality Gate') {
             steps {
                 script {
-                    def response = sh(script: "curl -s '${SONARQUBE_SERVER}/api/qualitygates/project_status?projectKey=Java-Code'", returnStdout: true).trim()
+                    def response = sh(script: "curl -s '${SONARQUBE_SERVER}/api/qualitygates/project_status?projectKey=my-app'", returnStdout: true).trim()
                     echo "SonarQube API Response: ${response}"
                     def qualityGateStatus = sh(script: "echo '${response}' | jq -r '.projectStatus.status'", returnStdout: true).trim()
                     if (qualityGateStatus != 'OK') {
