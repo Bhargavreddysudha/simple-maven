@@ -4,8 +4,8 @@ pipeline {
     environment {
         GIT_REPO_URL = 'https://github.com/Bhargavreddysudha/simple-maven.git'
         GIT_BRANCH = 'main'
-        SONARQUBE_SERVER = 'http://34.238.241.191:9000/'
-        NEXUS_URL = 'http://3.91.61.115:8081/'
+        SONARQUBE_SERVER = 'http://34.203.226.159:9000/'
+        NEXUS_URL = 'http://44.210.91.241:8081/'
         NEXUS_CREDENTIALS_ID = 'nexus-jenkins'
         NEXUS_REPOSITORY = 'JMR-PROJECT' // Only repository name without the full URL
     }
