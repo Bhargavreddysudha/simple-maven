@@ -5,7 +5,7 @@ pipeline {
         GIT_REPO_URL = 'https://github.com/Bhargavreddysudha/simple-maven.git'
         GIT_BRANCH = 'main'
         SONARQUBE_SERVER = 'http://34.203.226.159:9000/'
-        NEXUS_URL = '18.234.185.108:8081'
+        NEXUS_URL = 'http://18.234.185.108:8081/' // Corrected Nexus URL
         NEXUS_CREDENTIALS_ID = 'nexus-jenkins'
         NEXUS_REPOSITORY = 'JMR-PROJECT' // Only repository name without the full URL
     }
@@ -62,9 +62,9 @@ pipeline {
                     nexusArtifactUploader(
                         nexusVersion: 'nexus3',
                         protocol: 'http',
-                        nexusUrl: "${NEXUS_URL}",
-                        groupId: 'com.mycompany.app',
-                        version: '1.0-SNAPSHOT',
+                        nexusUrl: "${NEXUS_URL}", // Corrected Nexus URL
+                        groupId: 'com.example', // Change this to your actual group ID
+                        version: '1.0', // Change this to your actual version
                         repository: "${NEXUS_REPOSITORY}",
                         credentialsId: "${NEXUS_CREDENTIALS_ID}",
                         artifacts: [[artifactId: 'my-app', file: artifactPath]]
